@@ -18,7 +18,7 @@ An external ID mitigates the confused deputy problem; it is not a password and i
 - `modules/cross_account_role/`: target role, trust policy, scoped inline permissions, optional permissions boundary, and generated source policy.
 - `examples/bootstrap/`: two account-specific AWS provider configurations; creates the target role and attaches the caller policy to an existing source role.
 - `python/assume_role.py`: importable helper and CLI with an environment-to-role allowlist.
-- `.github/workflows/artifacts.yml`: manually triggered GitHub OIDC example.
+- `.github/workflows/artifacts.yml`: GitHub OIDC example, run on every push to `main` or by hand.
 - `tests/`: mocked STS authorization/identity tests and HCL parsing.
 
 ## Prerequisites
@@ -104,7 +104,19 @@ In the existing source role's OIDC trust policy, use the exact repository/enviro
 }
 ```
 
-Use GitHub environment protection and allowed deployment branches because environment subjects do not encode a branch. Set the `dev` environment secret `CICD_DEV_EXTERNAL_ID` and variables `CICD_SOURCE_ROLE_ARN`, `CICD_SOURCE_ACCOUNT_ID`, and `ARTIFACT_BUCKET`. Commit the reviewed `python/targets.json`. The included workflow uploads this README as a small artifact. Replace that command with the real build artifact and corresponding scoped permission set. The workflow uses the included exact Python dependency snapshot. Pin action references to reviewed commit SHAs before production adoption and periodically update the dependency snapshot.
+Use GitHub environment protection and allowed deployment branches because environment subjects do not encode a branch.
+
+The workflow reads these repository variables (Settings > Secrets and variables > Actions > Variables):
+
+| Variable | Example | Used for |
+| --- | --- | --- |
+| `AWS_ACCOUNT_ID` | `866934333672` | The source role's account; credentials for any other account are refused |
+| `AWS_REGION` | `us-east-1` | Region for the source role's credentials |
+| `ENVIRONMENT` | `dev` | The GitHub environment the job runs in, the `python/targets.json` entry, and the upload prefix `releases/<env>/` |
+| `PROJECT_NAME` | `terraform-python` | AWS session names and the uploaded file's name |
+| `ROLE_TO_ASSUME` | `arn:aws:iam::866934333672:role/Reactjs-application-role` | The source role GitHub signs in as; must equal that target's `source_role_arn` in `python/targets.json` |
+
+The `dev` GitHub environment also needs the secret `CICD_DEV_EXTERNAL_ID` and the variable `ARTIFACT_BUCKET`. The workflow's first steps stop with a named error if any of these is missing, if `python/targets.json` is missing, or if `ROLE_TO_ASSUME` does not match it. Commit the reviewed `python/targets.json`. The included workflow uploads this README as a small artifact. Replace that command with the real build artifact and corresponding scoped permission set. The workflow uses the included exact Python dependency snapshot. Pin action references to reviewed commit SHAs before production adoption and periodically update the dependency snapshot.
 
 ## Reuse for dev, UAT, and production
 
