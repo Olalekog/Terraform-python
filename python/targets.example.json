@@ -1,0 +1,8 @@
+{
+  "dev": {
+    "source_role_arn": "arn:aws:iam::111111111111:role/github-pipeline",
+    "role_arn": "arn:aws:iam::222222222222:role/cicd-artifact-dev",
+    "external_id_env": "CICD_DEV_EXTERNAL_ID",
+    "region": "us-east-1"
+  }
+}

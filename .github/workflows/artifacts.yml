@@ -1,0 +1,29 @@
+name: Upload deployment artifact
+on:
+  workflow_dispatch:
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # Existing source role OIDC trust must bind this repository and dev environment.
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.CICD_SOURCE_ROLE_ARN }}
+          aws-region: us-east-1
+          role-session-name: github-${{ github.run_id }}
+          allowed-account-ids: ${{ vars.CICD_SOURCE_ACCOUNT_ID }}
+      - run: python -m pip install -r requirements-lock.txt
+      - name: Upload under scoped prefix
+        env:
+          CICD_DEV_EXTERNAL_ID: ${{ secrets.CICD_DEV_EXTERNAL_ID }}
+          ARTIFACT_BUCKET: ${{ vars.ARTIFACT_BUCKET }}
+        run: |
+          python python/assume_role.py --config python/targets.json --target dev             --session-name deploy-${{ github.run_id }} --duration 900 --             aws s3 cp README.md "s3://${ARTIFACT_BUCKET}/releases/dev/build-${{ github.run_id }}.md"

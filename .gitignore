@@ -1,0 +1,8 @@
+__pycache__/
+.pytest_cache/
+.venv/
+.terraform/
+*.tfstate*
+*.tfvars
+*.tfplan
+python/targets.json

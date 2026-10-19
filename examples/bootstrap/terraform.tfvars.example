@@ -1,0 +1,8 @@
+source_account_id    = "111111111111"
+target_account_id    = "222222222222"
+source_role_name     = "github-pipeline"
+source_admin_profile = "source-bootstrap"
+target_admin_profile = "target-bootstrap"
+artifact_bucket      = "replace-with-existing-target-artifact-bucket"
+artifact_prefix      = "releases/dev"
+# Supply external_id through TF_VAR_external_id; do not commit it.
