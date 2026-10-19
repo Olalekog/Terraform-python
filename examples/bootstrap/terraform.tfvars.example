@@ -1,6 +1,6 @@
 source_account_id    = ""
 target_account_id    = ""
-source_role_name     = "github-pipeline"
+source_role_name     = ""
 source_admin_profile = "source-bootstrap"
 target_admin_profile = "target-bootstrap"
 artifact_bucket      = "replace-with-existing-target-artifact-bucket"
