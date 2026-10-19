@@ -35,6 +35,12 @@ jobs:
               exit 1
             fi
           done
+          # The bucket may be given as its name or its ARN; only the name is valid in s3:// addresses.
+          bucket="${ARTIFACT_BUCKET#arn:aws:s3:::}"
+          if ! [[ "$bucket" =~ ^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$ ]]; then
+            echo "::error::ARTIFACT_BUCKET must be a bucket name such as my-bucket (or its ARN), not '$ARTIFACT_BUCKET'."
+            exit 1
+          fi
           if [ ! -f python/targets.json ]; then
             echo "::error::python/targets.json is missing. Copy python/targets.example.json, fill in the role ARNs and commit it with: git add -f python/targets.json"
             exit 1
@@ -74,6 +80,7 @@ jobs:
           CICD_DEV_EXTERNAL_ID: ${{ secrets.CICD_DEV_EXTERNAL_ID }}
           ARTIFACT_BUCKET: ${{ vars.ARTIFACT_BUCKET }}
         run: |
+          bucket="${ARTIFACT_BUCKET#arn:aws:s3:::}"
           python python/assume_role.py --config python/targets.json --target "${ENVIRONMENT}" \
             --session-name "${PROJECT_NAME}-${ENVIRONMENT}-${{ github.run_id }}" --duration 900 -- \
-            aws s3 cp README.md "s3://${ARTIFACT_BUCKET}/releases/${ENVIRONMENT}/${PROJECT_NAME}-build-${{ github.run_id }}.md"
+            aws s3 cp README.md "s3://${bucket}/releases/${ENVIRONMENT}/${PROJECT_NAME}-build-${{ github.run_id }}.md"
